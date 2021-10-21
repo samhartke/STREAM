@@ -12,7 +12,8 @@ from netCDF4 import Dataset
 from datetime import date, timedelta
 import numpy as np
 import scipy as sp
-
+from tqdm import tqdm
+import time
 
 
 
@@ -74,7 +75,7 @@ def getWARfield(field,r):
 def simulatePrecip(dt,n_ens,ts,obsFile,noiseFile,paramsFile):
     
     end_dt = dt + timedelta(hours=(ts-1)) # end date of simulation
-    print("Generating %d-member precip ensemble for %s - %s"%(n_ens,dt.strftime("%Y-%m-%d"),end_dt.strftime("%Y-%m-%d")))
+    #print("Generating %d-member precip ensemble for %s - %s"%(n_ens,dt.strftime("%Y-%m-%d"),end_dt.strftime("%Y-%m-%d")))
     
     # ---  indicate whether to use correlated noise or not  ---
     corr = "imerg"   # corr can equal "imerg" or "none"
@@ -162,11 +163,8 @@ def simulatePrecip(dt,n_ens,ts,obsFile,noiseFile,paramsFile):
     
     
     # -- loop through each pixel in study area --
-    for y in range(ysize):
-        
-        if y%10==0:
-            print('Simulating row %d out of %d'%(y,ysize))
-        
+    for y in tqdm(range(ysize),desc="Generating %d-member precip ensemble"%n_ens):
+                
         for x in range(xsize):
             obs_ = obs[y,x,:-1]
             war_ = war[y,x,:-1]

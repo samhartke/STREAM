@@ -5,14 +5,11 @@ Created on Thu Sep 23 10:49:40 2021
 @author: Sam Hartke
 """
 
-import os
 from datetime import date, timedelta, datetime
 from STREAM_PrecipSimulation import simulatePrecip
-from STREAM_PrecipSimulation_DBW import simulatePrecip_DBW
 from STREAM_NoiseGeneration import generateNoise
 from netCDF4 import Dataset,date2num
 import numpy as np
-
 
 # -----------------------------------------------------------------------------
 # -------------------  INPUT PARAMETERS SECTION  ------------------------------
@@ -22,14 +19,14 @@ dt = date(2013,6,1) # date to start simulation at
 
 nEns = 8 # number of ensemble members to generate
 
-ts = 60*24 # number of timesteps to run simulation for [hrs]
+ts = 20*24 # number of timesteps to run simulation for [hrs]
 
 
 
 
 # ---  input file names  ---
 
-wd = "C:/Users/samia/OneDrive/QuantileWork/STREAMcode/"
+wd = "C:/Users/Sam/OneDrive/QuantileWork/STREAMcode/"
 
 obsInFname = wd + "IMERG2013.hourly.nc"  # path to satellite precipitation netcdf
 
@@ -60,7 +57,7 @@ generateNoise(nEns,ts,dt,obsInFname,windInFname,noiseOutFname)
 
 #%%
 # --- Simulate STREAM ensemble of precipitation
-simPrcp = simulatePrecip_DBW(dt,nEns,ts,obsInFname,noiseOutFname,paramsInFname)
+simPrcp = simulatePrecip(dt,nEns,ts,obsInFname,noiseOutFname,paramsInFname)
 
 
 
