@@ -147,15 +147,8 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
         
         
         # -- advect noise values from previous time step & perturb with noise field rn --
-        
-        # for k in range(0,ysize,5):
-        #     # we can move through pixels along y direction in blocks of 5 since
-        #     # MERRA2 wind data is at 0.5 resolution and thus each block of 5 pixels
-        #     # has the same v wind speed
-            
-        
-        #kbefores = ((np.arange(ysize)-diy)%ysize).astype('int')
-        
+        # move through each row and find previous noise values that would have
+        # advected to that row
         for k in range(0,ysize):
             
             kbefore = ((k-diy[k,:])%ysize).astype('int')
@@ -164,21 +157,6 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
             
             s[hr,k,:] = alpha*s[hr-1,kbefore,lbefores] + np.sqrt(1.-alpha**2)*rn[k,:]
 
-        
-            # for l in range(0,xsize):
-                
-            #     # retrieve value at previous time step that would have been "blown" to (k,l) for current time step
-            #     # y indices of grid to pull values from at last time step
-            #     kbefores = np.array(list(int((k+i-diy[k+i,l])%ysize) for i in range(5))) 
-                
-            #     lbefore = int((l-dix[k,l])%xsize) # horizontal index of grid to pull value from at last time step
-                
-            #     s[hr,k:k+5,l] = alpha*s[hr-1,kbefores,lbefore] + np.sqrt(1.-alpha**2)*rn[k:k+5,l]
-        
-        
-        
-        # divide noise field by it's standard deviation to normalize back to N(0,1)
-        # s[m,:,:] = s[m,:,:]/np.std(s[m,:,:])
     
     
     

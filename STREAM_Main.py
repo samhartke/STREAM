@@ -15,9 +15,9 @@ import numpy as np
 # -------------------  INPUT PARAMETERS SECTION  ------------------------------
 
 
-dt = date(2013,6,1) # date to start simulation at
-
 nEns = 8 # number of ensemble members to generate
+
+dt = date(2013,6,1) # date to start simulation at
 
 ts = 20*24 # number of timesteps to run simulation for [hrs]
 
@@ -46,7 +46,7 @@ precipOutFname = wd + "STREAM_%s_%s.nc"%(dt.strftime('%Y%m%d'),end_dt.strftime('
 
 
 
-# --- END OF INPUT PARAMETERS FOR STREAM  -------------------------------------
+# --- END OF INPUT PARAMETERS SECTION FOR STREAM  -----------------------------
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 #%%
@@ -55,7 +55,7 @@ precipOutFname = wd + "STREAM_%s_%s.nc"%(dt.strftime('%Y%m%d'),end_dt.strftime('
 # --- Generate noise ensemble and save to netcdf noiseOutFname
 generateNoise(nEns,ts,dt,obsInFname,windInFname,noiseOutFname)
 
-#%%
+
 # --- Simulate STREAM ensemble of precipitation
 simPrcp = simulatePrecip(dt,nEns,ts,obsInFname,noiseOutFname,paramsInFname)
 
@@ -106,4 +106,8 @@ prcp[:,:,:,:] = simPrcp
 new_cdf.close()
 
 
+
+# --------- ----- END OF STREAM SIMULATION CODE  ------------------------------
+# -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 

@@ -25,7 +25,9 @@ rc('text', usetex=True)
 #==============================================================================
 
 def plot_background(ax):
+    
     ax.set_extent([-100., -85., 35., 45.])
+    
     #Create a feature for States/Admin 1 regions at 1:50m from Natural Earth
     states_provinces = cfeature.NaturalEarthFeature(
         category='cultural',
@@ -42,6 +44,8 @@ def plot_background(ax):
 # USE THIS SECTION TO INDICATE WHAT TIME PERIOD AND WHAT FORMAT TO
 # PLOT SIMULATED PRECIPITATION OUTPUT FOR
 #
+#------------------------------------------------------------------------------
+
 
 # indicate whether to create video of results or plot of results
 video = True  # this creates a video showing precipitation fields over time
@@ -59,7 +63,7 @@ ts = 2*24 # usually this is <10 for plots and some multiple of 24 for a video
 
 # ---  input file names  ---
 
-wd = "C:/Users/samia/OneDrive/QuantileWork/STREAMcode/"
+wd = "C:/path/to/STREAMcode/"
 
 refFname = wd + "NexradIV2013_0.1deg.hourly.nc"  # path for reference precipitation data
 
@@ -68,7 +72,7 @@ obsFname = wd + "IMERG2013.hourly.nc"   # path for observed precipitation data
 
 noiseFname = wd + "noise_20130601_20130614.nc"  # path for noise ensemble
 
-STREAMFname = wd + "STREAM_20130601_20130614.nc"   # path for precipitation ensemble output
+STREAMFname = wd + "STREAM_20130601_20130614.nc"   # path for STREAM precipitation ensemble
 
 
 
