@@ -30,17 +30,28 @@ def getAlpha(data0,data1):
     # get average temporal correlation of field at timestep t
     lp, _ = pearsonr(data1.flatten(),data0.flatten())
     
+    # optional - get correlation of nonzero portions of precipitation fields only
+    # lp, _ = pearsonr(data1[data1+data0>0.].flatten(),data0[data1+data0>0.].flatten())
+    
     return(lp)
+
+
+# =============================================================================
+# distance between two lat/lon coordinates, in meters
+
+def latlondistance(lat1,lon1,lat2,lon2):    
+    R=6371.
+    dlat=np.radians(lat2-lat1)
+    dlon=np.radians(lon2-lon1)
+    a=np.sin(dlat/2.)*np.sin(dlat/2.)+np.cos(np.radians(lat1))*np.cos(np.radians(lat2))*np.sin(dlon/2.)*np.sin(dlon/2.);
+    c=2.*np.arctan2(np.sqrt(a),np.sqrt(1-a))
+    return R*c*1000.
 
 
 
 #==============================================================================
     
 def getCorrNoise(n, h, dt,obsFile,windFile):
-    
-    ysize=100
-    xsize=150
-    
     
     # ---- grab hourly MERRA2 wind data at 850 mb over 35N-45N, 85W-100W [m/s]
     # MERRA2 files were downloaded from GES-DISC and aggregated to yearly files in writeWindNetcdfs.py
@@ -56,6 +67,12 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
     
     # ----  open hourly IMERG data  ----
     ds = Dataset(obsFile)
+    dslon=ds['longitude'][:]
+    dslat=ds['latitude'][:]
+    
+    dlon=np.median(dslon[1:]-dslon[0:-1])
+    dlat=np.median(dslon[1:]-dslon[0:-1])
+
     
     # get number of hours between start of file and date dt at hour h
     d_start = num2date(ds.variables['time'][0],ds.variables['time'].units)
@@ -64,24 +81,36 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
     imerg = ds.variables['prcp'][:,:,nd:(nd+n)].astype('float32')
     imerg[imerg<0.1] = 0.
     ds=None
+    xsize=imerg.shape[1]
+    ysize=imerg.shape[0]
     
-    # grid spacing [m] - 0.1 degree resolution corresponds to ~11 km or ~11000 m
-    dx = 11000
-    dy = 11000
+    yind=np.repeat(np.arange(0,ysize),xsize).reshape(ysize,xsize).astype('int16')
+    xind=np.tile(np.arange(0,xsize),ysize).reshape(ysize,xsize).astype('int16')
+    
+    
+    # DBW-I replaced this with exact values for each grid cell
+    tdy=latlondistance(dslat[0], dslon[0], dslat[0]+dlat, dslon[0])
+    dy=np.empty_like(imerg[:,:,0])
+    dy[:]=tdy
+    gridx,gridy=np.meshgrid(dslon,dslat) 
+    dx=latlondistance(gridy.flatten(), gridx.flatten(), gridy.flatten(), gridx.flatten()+dlon)
+    dx=dx.reshape(imerg.shape[0],imerg.shape[1])
+    
     
     # create array to hold simulated noise
     s = np.empty((n,ysize,xsize),dtype=np.float32)
     
+    
     # --- SIMULATE FIRST FIELD ---
-    if len(imerg[:,:,0][imerg[:,:,0]>=0.1]) > 750:
+    if len(imerg[:,:,0][imerg[:,:,0]>=0.1]) > 750:          
         # only use pysteps smoothing filter if there is actually rain in the study area
-        Fnp = initialize_nonparam_2d_ssft_filter(imerg[:,:,0]) 
-        s[0,:,:] = generate_noise_2d_ssft_filter(Fnp)
+        Fnp = initialize_nonparam_2d_ssft_filter(imerg[:,:,0],win_size=(64,64)) 
+        s[0,:,:] = generate_noise_2d_ssft_filter(Fnp,seed=seednum)
         firstRain=True
         
     else:
         # otherwise just use smoothed white noise
-        s[0,:,:] = np.random.normal(size=(ysize,xsize))
+        s[0,:,:] = np.random.normal(size=(ysize,xsize),seed=seednum)
         firstRain=False
     
     
@@ -98,13 +127,16 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
         # get wind values from PREVIOUS hour and calculate dx, dy that correspond to this time step
         u = u_values[:,:,hr-1] # eastward wind [m/s]
         
+        # DBW-I'm guessing the stuff below is hardcoding hourly resolution... should fix this later but its boring to fix
+        
+        # DBW-is the next line an anachronism...? Seems like you "pregrid" MERRA-2 to 0.1 degrees, which seems like a good idea
         # use cv.resize function to regrid u wind to 0.1 degree
-        deltax = u*60*60 # distance wind travels each time step in positive x dir [m]
+        deltax = u*60.*60. # distance wind travels each time step in positive x dir [m]
         dix = deltax//dx # number of grid steps to shift in semi-lagrangian scheme in units of [0.1 deg pixels]
         
         
         v = v_values[:,:,hr-1] # northward wind [m/s]
-        deltay = -v*60*60 # distance wind travels each time step in positive y dir [m]
+        deltay = -v*60.*60. # distance wind travels each time step in positive y dir [m]
         diy = deltay//dy # number of grid steps to shift in semi-lagrangian scheme [0.1 deg pixels]
         imergh = imerg[:,:,hr]
         
@@ -115,7 +147,7 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
         if len(imergh[imergh>=0.1]) > 750: # atleast 5% of study area must be rainy
             
             Fnp = initialize_nonparam_2d_ssft_filter(imergh,win_size=(64,64))
-            rn = generate_noise_2d_ssft_filter(Fnp)
+            rn = generate_noise_2d_ssft_filter(Fnp,seed=seednum+hr)
             
             # get average temporal correlation of field in previous timestep
             alpha = getAlpha(imergh,imerg[:,:,hr-1])
@@ -130,11 +162,11 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
             
             if firstRain==True:
                 
-                rn = generate_noise_2d_ssft_filter(Fnp)
+                rn = generate_noise_2d_ssft_filter(Fnp,seed=seednum+hr)
             
             else:
                 # if first instance of a "rainy field" hasn't occurred yet in study period, use white noise
-                rn = np.random.normal(size=(ysize,xsize)) # white noise
+                rn = np.random.normal(size=(ysize,xsize),seed=seednum+hr) # white noise
         
         
         if np.isnan(rn[0,0])==True: # if pysteps smoothing process doesn't work for some reason, use last realization of smoothed noise
@@ -145,19 +177,12 @@ def getCorrNoise(n, h, dt,obsFile,windFile):
             
             last_rn = rn
         
-        
-        # -- advect noise values from previous time step & perturb with noise field rn --
-        # move through each row and find previous noise values that would have
-        # advected to that row
-        for k in range(0,ysize):
-            
-            kbefore = ((k-diy[k,:])%ysize).astype('int')
-            
-            lbefores = ((np.arange(xsize)-dix[k,:])%xsize).astype('int') # horizontal indices
-            
-            s[hr,k,:] = alpha*s[hr-1,kbefore,lbefores] + np.sqrt(1.-alpha**2)*rn[k,:]
-
     
+        # -- advect noise values from previous time step & perturb with noise field rn --
+        ybefore=np.array((yind-diy)%ysize,dtype='int16')
+        xbefore=np.array((xind-dix)%xsize,dtype='int16')
+        s[hr,:] = (alpha*s[hr-1,ybefore,xbefore] + np.sqrt(1.-alpha**2)*rn).astype('float32')
+
     
     
     # return noise field
@@ -174,8 +199,7 @@ def generateNoise(n_ens,ts,dt,obsFile,windFile,newFile):
     end_dt = dt + timedelta(hours=(hr+ts-1)) # end date of simulation
     
     
-    #print("Generating %d-member noise ensemble for %s to %s"%(n_ens,dt.strftime("%Y-%m-%d"),end_dt.strftime("%Y-%m-%d")))
-    
+    print("Generating %d-member noise ensemble for %s to %s"%(n_ens,dt.strftime("%Y-%m-%d"),end_dt.strftime("%Y-%m-%d")))
     
     
     save = True
