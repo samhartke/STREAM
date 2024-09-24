@@ -19,6 +19,10 @@ Optional files:
 - STREAM_PlotOutput.py (to visualize STREAM input and output fields)
 - CSGD_TrainErrorModel.py (to train CSGD error model)
 
+### Required python packages for STREAM 
+Required packages: xarray, xesmf, scipy, numpy, random, datetime
+Required packages for plotting STREAM output fields: cartopy, matplotlib
+
 # Example cases
 Several example uses of STREAM are included in the example_files directory. The required input data and output fields are located in the example_data and example_output directories, respectively.
 
@@ -30,13 +34,12 @@ The En-GARD downscaling method utilizes spatially correlated random fields (SCRF
 
 Gutmann, E. D., Hamman, Joseph. J., Clark, M. P., Eidhammer, T., Wood, A. W., & Arnold, J. R. (2022). En-GARD: A Statistical Downscaling Framework to Produce and Test Large Ensembles of Climate Projections. Journal of Hydrometeorology, 23(10), 1545–1561. https://doi.org/10.1175/jhm-d-21-0142.1
  
-### Required python packages for STREAM 
-Required packages: xarray, numpy
+
  
 ### Running STREAM 
-Fill in all parameters and filenames in the Input Parameters Section of STREAM_main.py 
+Fill in all parameters and filenames in the Input Parameters Section of STREAM_config.py 
 
-Run STREAM_main.py 
+Run "python STREAM_config.py" from the command line.
  
 ### Formatting input data for STREAM 
 **obsInFname** should be a netcdf file with variable ‘prcp’ with dimensions (time,y,x)
