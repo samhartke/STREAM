@@ -21,6 +21,7 @@ Optional files:
 
 ### Required python packages for STREAM 
 Required packages: xarray, xesmf, scipy, numpy, random, datetime
+
 Required packages for plotting STREAM output fields: cartopy, matplotlib
 
 # Example cases
