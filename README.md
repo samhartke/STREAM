@@ -43,11 +43,13 @@ Fill in all parameters and filenames in the Input Parameters Section of STREAM_c
 Run "python STREAM_config.py" from the command line.
  
 ### Formatting input data for STREAM 
-**obsInFname** should be a netcdf file with variable ‘prcp’ with dimensions (time,y,x)
+**pcp_file** should be a netcdf file with coordinates (time,lat,lon). The user defines the variable name, pvar, and can optionally include a pre-processing function to get this dataset into the correct format for STREAM.
 
-**windInFname** should be a netcdf file with variables ‘uWind’ and ‘vWind’ with dimensions (time,y,x) at the same resolution as obsInFname 
+**wind_file** should be a netcdf file with coordinates (time,lat,lon). It should cover the same region and time steps as the pcp_file, although STREAM will automatically regrid this dataset to the resolution of the pcp_file and interpolate to fill in any time steps in pcp_file that are not in wind_file.
 
-**paramsInFname** should be a netcdf file with dimensions (y,x) at the same resolution as obsInFname and variables 'clim1','clim2','clim3', 'par1','par2','par3','par4','par5' 
+If using the CSGD error model:
+
+**paramsInFname** should be a netcdf file with coordinates (time,lat,lon) at the same resolution as pcp_file and variables 'clim1','clim2','clim3', 'par1','par2','par3','par4','par5' 
 
 ### Retrieving data for STREAM in IMERG and CSGD application
 - IMERG Early data downloaded from GESDISC – variable ‘precipitationCal’ 
