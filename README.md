@@ -1,11 +1,13 @@
 # The Space-Time Rainfall Error and Autocorrelation Model (STREAM)
 
 # Introduction
-The Space-Time Rainfall Error and Autocorrelation Model (STREAM) was developed to combine space-time correlation structures of satellite precipitation fields with a pixel scale precipitation error model to generate precipitation ensembles that can “bracket” the magnitude and replicate the correlation structure of ground reference (i.e. true) rainfall. STREAM was developed and evaluated for a study area in the central U.S. using the NASA satellite precipitation product, IMERG-Early, at an hourly 0.1º scale. For more information about STREAM methodology, see Hartke et al. 2022.
+
+The Space-Time Rainfall Error and Autocorrelation Model (STREAM) provides an efficient way to reproduce the space-time correlation structure of precipitation fields in a randomly generated uniform noise field. This correlation structure can be useful for a number of applications, including downscaling precipitation and post-processing precipitation fields with a known error structure (as in En-GARD).
+
+STREAM was developed to combine space-time correlation structures of satellite precipitation fields with a pixel scale precipitation error model to generate precipitation ensembles that can “bracket” the magnitude and replicate the correlation structure of ground reference (i.e. true) rainfall. STREAM was developed and evaluated for a study area in the central U.S. using the NASA satellite precipitation product, IMERG-Early, at an hourly 0.1º scale. For more information about STREAM methodology, see Hartke et al. 2022.
 
 Hartke, S. H., Wright, D. B., Li, Z., Maggioni, V., Kirschbaum, D. B., & Khan, S. (2022). Ensemble representation of satellite precipitation uncertainty using a nonstationary, anisotropic autocorrelation model. Water Resources Research, 58, e2021WR031650. https://doi.org/10.1029/2021WR031650 
 
-STREAM provides an efficient way to reproduce the space-time correlation structure of precipitation fields in a randomly generated uniform noise field. This correlation structure can be useful for a number of applications, including downscaling precipitation and post-processing precipitation fields with a known error structure (as in En-GARD).
 
 # Layout
 There are two src files: to simulate spatiotemporally correlated noise fields using a given precipitation field and associated wind fields:
