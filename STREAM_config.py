@@ -4,13 +4,17 @@ In this example, STREAM is used to generate a correlated noise field that replic
 A correlated noise field is generated for Apr 1 - Apr 8, 2013, and this noise field is then used to simulate a possible "true" precipitation field based on IMERG
 and a trained censored shifted gamma distribution error model.
 '''
-
+import sys
+import os
 from datetime import datetime
-from STREAM_PrecipSimulation import PrecipSimulation # Import necessary modules from the STREAM_Utils.py file
-from STREAM_Utils import NoiseGenerator, Validate
 import scipy as sp
 import numpy as np
 import xarray as xr
+
+# Add src/ directory to the system path
+sys.path.append(os.path.abspath("src/"))
+from STREAM_PrecipSimulation import PrecipSimulation # Import PrecipSimulation module
+from STREAM_Utils import NoiseGenerator, Validate # Import modules from the STREAM_Utils.py file
 
 # -----------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------

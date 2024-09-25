@@ -1,7 +1,6 @@
-from netCDF4 import Dataset, date2num, num2date
+
 import numpy as np
 from datetime import date, timedelta, datetime
-from dateutil.relativedelta import relativedelta
 import scipy as sp
 from scipy.stats import pearsonr
 import xarray as xr
@@ -151,9 +150,8 @@ class Validate:
         ## Check that assigned precipitation variable name, pvar, exists in dataset
         if pvar not in prcp_ds.data_vars:
             print('Precipitation dataset does not contain variable %s.'%pvar)
-        
-        ## Check if duplicate dates are found in precipitation data & remove them
 
+        ## Check if duplicate dates are found in precipitation data & remove them
         time_values = prcp_ds['time'].values
         _, unique_indices = np.unique(time_values, return_index=True) # Detect duplicates using NumPy
         # Sort unique indices to preserve the original order
@@ -173,7 +171,6 @@ class NoiseGenerator:
         self.advection = advection
         self.pcp_file = pcp_file
         self.verbose = verbose
-
         self.Validate = Validate(self)
         
         if preprocess_pcp!=None: # Optional precipitation post-processing step defined by user
@@ -387,7 +384,13 @@ class NoiseGenerator:
         # Subset precip dataset to date and timesteps selected for simulation
         dt_start = dt.strftime('%Y-%m-%d')
         end_index = self.pcp.get_index('time').get_loc(dt_start).start + n # get index of end date for simulation
-        dt_end = str(self.pcp.time.values[end_index])#.astype('M8[ms]').astype('O').strftime('%Y-%m-%d')
+        
+        if n>self.pcp.time.shape[0]:
+            print('Precip dataset has %d timesteps and user has requested %d for simulation.'%(self.pcp.time.shape[0],n))
+            dt_end = str(self.pcp.time.values[-1])
+        else:
+            dt_end = str(self.pcp.time.values[end_index-1])
+        
         ds = self.pcp.sel(time=slice(dt_start, dt_end))
         pcp = ds[self.pvar][:n]
         
@@ -470,27 +473,5 @@ class NoiseGenerator:
         return(final_ds.drop(self.pvar))
         
         ## -------------------------------------------------------------------------
-    
-    def generateNoiseEnsemble(self, n_ens, years, dt, verbose=False):
-        '''
-        This function generates an ensemble of 3D (time,lat,lon) correlated noise fields.
-        '''
-        dt_start = dt.strftime('%Y-%m-%d')
-        year_end = (dt + relativedelta(years=years - 1)).year
-        dt_end = date(year_end, 12, 31).strftime('%Y-%m-%d')
-        if verbose: print("Generating %d-member noise ensemble for %s to %s starting at " % (n_ens, dt_start, dt_end), datetime.now())
 
-        noise_arrays = []
-        for nn in range(0, n_ens):
-            noise_generator = NoiseGenerator(wsize=128, seed=nn)
-            s = noise_generator.get_corr_noise(self.ts, self.dt, self.obs_file, self.pvar, self.wind_file_template,
-                                               seednum=nn, runtag=self.runtag, advection=self.advection)
-            noise_arrays.append(s)
-            if verbose: print("Noise ensemble member", nn, "complete.")
-
-        ens_ds = xr.concat(noise_arrays,dim='ens_n')
-        new_cdf = new_cdf.drop(self.pvar)
-
-        return(new_cdf)
-        ## -------------------------------------------------------------------------
 

@@ -1,16 +1,20 @@
 '''
 Example usage of STREAM noise generation and precipitation simulation
 In this example, STREAM is used to generate a correlated noise field that replicates the spatial correlation structure of an En-GARD output downscaled precipitation field.
-A correlated noise field is generated for 1950-1960, and this noise field can be used to post-process the En-GARD output.
+A correlated noise field is generated for 1950-1955, and this noise field can then be used to post-process the En-GARD output field.
 
 '''
-
+import sys
+import os
 from datetime import datetime
-from STREAM_PrecipSimulation import PrecipSimulation # Import necessary modules from the STREAM_Utils.py file
-from STREAM_Utils import NoiseGenerator, Validate
 import scipy as sp
 import numpy as np
 import xarray as xr
+
+# Add src/ directory to the system path
+sys.path.append(os.path.abspath("../src/"))
+from STREAM_PrecipSimulation import PrecipSimulation # Import necessary modules from the STREAM_Utils.py file
+from STREAM_Utils import NoiseGenerator, Validate
 
 # -----------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------
@@ -21,9 +25,17 @@ import xarray as xr
 wsize = (128,128)  # window size for the noise generation
 seed = 42    # seed for the random number generator used in random noise generation
 ts = None    # timestep to run simulation at, in hours. Default is the timestep of the precipitation file (e.g. hourly for hourly precip data). Timestep cannot be smaller than precipitation data timestep. Leave this value as None if wanting to use the timestep of the input precipitation data.
-n = 10*365       # number of timesteps to generate data for - in this case 10 years
+n = 6*365       # number of timesteps to generate data for - in this case 6 years
 dt = datetime(2050, 1, 1)  # start date
-pcp_file = '../example_data/gard_out_pcp.nc'  # path to the precipitation file - this is the raw output of the En-GARD downscaling model
+
+# path to the precipitation files - this is the raw output of the En-GARD downscaling model (before post-processing step), broken into yearly files to make it easier for users to download in this case
+pcp_file = ('../example_data/gard_out_pcp2050.nc',
+            '../example_data/gard_out_pcp2051.nc',
+            '../example_data/gard_out_pcp2052.nc',
+            '../example_data/gard_out_pcp2053.nc',
+            '../example_data/gard_out_pcp2054.nc',
+            '../example_data/gard_out_pcp2055.nc',
+           )
 pvar = 'pcp'  # variable name for field to replicate correlation from
 # Optional: provide list of pcp filenames instead of single filename (e.g., multiple decadal files) 
 # Precipitation file must have coordinates (time,lat,lon), and, if lat and lon are 2D variables, their dimensions must be (y,x)
@@ -65,7 +77,7 @@ def preprocess_pcp(ds_name):
     '''
     # Function to rename dimensions of En-GARD output and change lat and lon to 1D fields since the grid is rectilinear
     '''
-    ds = xr.open_dataset(ds_name)
+    ds = xr.open_mfdataset(ds_name)
     ds = ds.assign(y=ds.lat[:,0].values).assign(x=ds.lon[0,:].values-360).drop_vars(('lat','lon')).rename({'y':'lat','x':'lon'})
     return(ds)
 
@@ -91,8 +103,8 @@ if generateNoise:
     )
     
     # correlated_noise is now a correlated noise based on input precip fields and advection of input wind fields
-    # Save this data to a netcdf
-    correlated_noise.to_netcdf(noiseFile)
+    # Save this data to a netcdf, using compression to minimize file size
+    correlated_noise.to_netcdf(noiseFile,encoding = {'noise': {"zlib": True, "complevel": 4}})
 
 if simulatePrecip:
     # Generate precipitation fields based on correlated noise fields
