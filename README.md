@@ -2,7 +2,7 @@
 
 # Introduction
 
-The Space-Time Rainfall Error and Autocorrelation Model (STREAM) provides an efficient way to reproduce the space-time correlation structure of precipitation fields in a randomly generated uniform noise field. This correlation structure can be useful for a number of applications, including downscaling precipitation and post-processing precipitation fields with a known error structure (as in En-GARD).
+The Space-Time Rainfall Error and Autocorrelation Model (STREAM) provides an efficient way to reproduce the space-time correlation structure of precipitation fields in a randomly generated uniform noise field. This correlation structure can be useful for a number of applications, including generating precipitation fields based on expected errors in an imperfect precipitation product and post-processing precipitation fields with a known error structure (as in En-GARD).
 
 STREAM was developed to combine space-time correlation structures of satellite precipitation fields with a pixel scale precipitation error model to generate precipitation ensembles that can “bracket” the magnitude and replicate the correlation structure of ground reference (i.e. true) rainfall. STREAM was developed and evaluated for a study area in the central U.S. using the NASA satellite precipitation product, IMERG-Early, at an hourly 0.1º scale. For more information about STREAM methodology, see Hartke et al. 2022.
 
